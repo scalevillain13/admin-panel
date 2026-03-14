@@ -24,16 +24,16 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const isLoginPage = location.pathname === '/login'
+  const isPublicPage = location.pathname === '/login' || location.pathname === '/register'
 
   useEffect(() => {
     if (loading) return
-    if (!user && !isLoginPage) {
+    if (!user && !isPublicPage) {
       navigate('/login', { replace: true })
-    } else if (user && isLoginPage) {
+    } else if (user && isPublicPage) {
       navigate('/dashboard', { replace: true })
     }
-  }, [user, loading, isLoginPage, navigate])
+  }, [user, loading, isPublicPage, navigate])
 
   return { user, loading }
 }
