@@ -81,13 +81,13 @@ export default function Login() {
           >
             {loading ? 'Вход…' : 'Войти'}
           </button>
-        </form>
-        <p className="mt-4 text-center text-sm text-slate-500">
-          Нет аккаунта?{' '}
-          <Link to="/register" className="font-medium text-primary-600 hover:underline">
+          <Link
+            to="/register"
+            className="mt-3 flex w-full justify-center rounded-lg border border-primary-600 py-2.5 font-medium text-primary-700 hover:bg-primary-50"
+          >
             Зарегистрироваться
           </Link>
-        </p>
+        </form>
       </div>
     </div>
   )

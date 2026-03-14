@@ -9,9 +9,11 @@ import Activity from './pages/Activity'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || ''
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
