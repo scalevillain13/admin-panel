@@ -21,7 +21,7 @@ import {
 } from '../api/groups'
 import { fetchUsersForPicker } from '../api/userGroups'
 import { logActivity } from '../api/activity'
-import { supabase } from '../lib/supabase'
+import { getUser } from '../lib/auth'
 import type { Group } from '../types'
 
 const schema = z.object({
@@ -59,7 +59,7 @@ export default function GroupsPage() {
   const createMutation = useMutation({
     mutationFn: (input: CreateGroupInput) => createGroup(input),
     onSuccess: async (g) => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await getUser()
       await logActivity({ user_id: user?.id ?? null, action: 'create_group', entity_type: 'group', entity_id: g.id, payload: { name: g.name } })
       queryClient.invalidateQueries({ queryKey: ['groups'] })
       setCreateOpen(false)
@@ -71,7 +71,7 @@ export default function GroupsPage() {
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateGroupInput }) => updateGroup(id, input),
     onSuccess: async (_, { id }) => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await getUser()
       await logActivity({ user_id: user?.id ?? null, action: 'update_group', entity_type: 'group', entity_id: id })
       queryClient.invalidateQueries({ queryKey: ['groups'] })
       setEditId(null)
@@ -82,7 +82,7 @@ export default function GroupsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteGroup(id),
     onSuccess: async (_, id) => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await getUser()
       await logActivity({ user_id: user?.id ?? null, action: 'delete_group', entity_type: 'group', entity_id: id })
       queryClient.invalidateQueries({ queryKey: ['groups'] })
       toast.success('Группа удалена')

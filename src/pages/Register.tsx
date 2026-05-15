@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
+import { signUp } from '../lib/auth'
 import { logActivity } from '../api/activity'
 import toast from 'react-hot-toast'
 
@@ -17,7 +17,7 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await signUp({
         email,
         password,
         options: {

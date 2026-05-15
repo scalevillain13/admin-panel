@@ -1,7 +1,10 @@
 import { supabase } from '../lib/supabase'
+import { isMockMode } from '../lib/mockMode'
+import * as mock from '../mock/api'
 import type { Group } from '../types'
 
 export async function fetchGroups() {
+  if (isMockMode) return mock.mockFetchGroups()
   const { data, error } = await supabase
     .from('groups')
     .select(`
@@ -20,6 +23,7 @@ export async function fetchGroups() {
 }
 
 export async function fetchGroup(id: string) {
+  if (isMockMode) return mock.mockFetchGroup(id)
   const { data, error } = await supabase.from('groups').select('*').eq('id', id).single()
   if (error) throw error
   return data as Group
@@ -31,6 +35,7 @@ export type GroupMemberRow = {
 }
 
 export async function fetchGroupMembers(groupId: string): Promise<GroupMemberRow[]> {
+  if (isMockMode) return mock.mockFetchGroupMembers(groupId) as Promise<GroupMemberRow[]>
   const { data, error } = await supabase
     .from('user_groups')
     .select('user_id, profiles(id, email, full_name, status)')
@@ -43,28 +48,33 @@ export type CreateGroupInput = { name: string; description?: string }
 export type UpdateGroupInput = { name?: string; description?: string }
 
 export async function createGroup(input: CreateGroupInput) {
+  if (isMockMode) return mock.mockCreateGroup(input)
   const { data, error } = await supabase.from('groups').insert(input).select().single()
   if (error) throw error
   return data as Group
 }
 
 export async function updateGroup(id: string, input: UpdateGroupInput) {
+  if (isMockMode) return mock.mockUpdateGroup(id, input)
   const { error } = await supabase.from('groups').update(input).eq('id', id)
   if (error) throw error
   return fetchGroup(id)
 }
 
 export async function deleteGroup(id: string) {
+  if (isMockMode) return mock.mockDeleteGroup(id)
   const { error } = await supabase.from('groups').delete().eq('id', id)
   if (error) throw error
 }
 
 export async function addUserToGroup(userId: string, groupId: string) {
+  if (isMockMode) return mock.mockAddUserToGroup(userId, groupId)
   const { error } = await supabase.from('user_groups').insert({ user_id: userId, group_id: groupId })
   if (error) throw error
 }
 
 export async function removeUserFromGroup(userId: string, groupId: string) {
+  if (isMockMode) return mock.mockRemoveUserFromGroup(userId, groupId)
   const { error } = await supabase.from('user_groups').delete().eq('user_id', userId).eq('group_id', groupId)
   if (error) throw error
 }

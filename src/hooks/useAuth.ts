@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import type { User as AuthUser } from '@supabase/supabase-js'
+import { getSession, onAuthStateChange, type AuthUser } from '../lib/auth'
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -10,14 +9,14 @@ export function useAuth() {
   const location = useLocation()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
 

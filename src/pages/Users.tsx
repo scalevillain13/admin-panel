@@ -19,7 +19,7 @@ import { fetchRoles } from '../api/roles'
 import { fetchUserGroups, setUserGroups } from '../api/userGroups'
 import { fetchGroups } from '../api/groups'
 import { logActivity } from '../api/activity'
-import { supabase } from '../lib/supabase'
+import { getUser } from '../lib/auth'
 import type { User } from '../types'
 
 const createSchema = z.object({
@@ -65,7 +65,7 @@ export default function Users() {
   const createMutation = useMutation({
     mutationFn: (input: CreateUserInput) => createUser(input),
     onSuccess: async (user) => {
-      const { data: { user: me } } = await supabase.auth.getUser()
+      const { data: { user: me } } = await getUser()
       await logActivity({ user_id: me?.id ?? null, action: 'create_user', entity_type: 'user', entity_id: user.id, payload: { email: user.email } })
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setCreateOpen(false)
@@ -76,7 +76,7 @@ export default function Users() {
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateUserInput }) => updateUser(id, input),
     onSuccess: async (_, { id }) => {
-      const { data: { user: me } } = await supabase.auth.getUser()
+      const { data: { user: me } } = await getUser()
       await logActivity({ user_id: me?.id ?? null, action: 'update_user', entity_type: 'user', entity_id: id })
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['user', editId] })
@@ -88,7 +88,7 @@ export default function Users() {
   const blockMutation = useMutation({
     mutationFn: (id: string) => blockUser(id),
     onSuccess: async (_, id) => {
-      const { data: { user: me } } = await supabase.auth.getUser()
+      const { data: { user: me } } = await getUser()
       await logActivity({ user_id: me?.id ?? null, action: 'block_user', entity_type: 'user', entity_id: id })
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('Пользователь заблокирован')

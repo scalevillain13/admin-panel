@@ -1,11 +1,21 @@
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { getUser, signOut } from '../lib/auth'
+import { logActivity } from '../api/activity'
 
 export default function Header() {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    const { data: { user } } = await getUser()
+    await signOut()
+    if (user) {
+      await logActivity({
+        user_id: user.id,
+        action: 'logout',
+        entity_type: 'user',
+        entity_id: user.id,
+      })
+    }
     navigate('/login', { replace: true })
   }
 

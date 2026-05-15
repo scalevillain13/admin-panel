@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { isMockMode } from '../lib/mockMode'
+import * as mock from '../mock/api'
 import type { User, UserStatus } from '../types'
 
 export type ProfileRow = {
@@ -28,6 +30,7 @@ function toUser(row: ProfileRow): User {
 }
 
 export async function fetchUsers(params?: { search?: string; role_id?: string; status?: string }) {
+  if (isMockMode) return mock.mockFetchUsers(params)
   let q = supabase
     .from('profiles')
     .select('*, roles(id, name, description)', { count: 'exact' })
@@ -49,6 +52,7 @@ export async function fetchUsers(params?: { search?: string; role_id?: string; s
 }
 
 export async function fetchUser(id: string) {
+  if (isMockMode) return mock.mockFetchUser(id)
   const { data, error } = await supabase
     .from('profiles')
     .select('*, roles(id, name, description)')
@@ -67,6 +71,7 @@ export type CreateUserInput = {
 }
 
 export async function createUser(input: CreateUserInput) {
+  if (isMockMode) return mock.mockCreateUser(input)
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -99,6 +104,7 @@ export type UpdateUserInput = {
 }
 
 export async function updateUser(id: string, input: UpdateUserInput) {
+  if (isMockMode) return mock.mockUpdateUser(id, input)
   const { error } = await supabase
     .from('profiles')
     .update({
@@ -111,5 +117,6 @@ export async function updateUser(id: string, input: UpdateUserInput) {
 }
 
 export async function blockUser(id: string) {
+  if (isMockMode) return mock.mockBlockUser(id)
   return updateUser(id, { status: 'blocked' })
 }

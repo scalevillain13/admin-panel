@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { isMockMode } from '../lib/mockMode'
+import * as mock from '../mock/api'
 import type { ActivityLog } from '../types'
 
 export type ActivityFilters = {
@@ -10,6 +12,7 @@ export type ActivityFilters = {
 }
 
 export async function fetchActivityLogs(params?: { page?: number; pageSize?: number } & ActivityFilters) {
+  if (isMockMode) return mock.mockFetchActivityLogs(params)
   const page = params?.page ?? 1
   const pageSize = params?.pageSize ?? 20
   const from = (page - 1) * pageSize
@@ -45,6 +48,7 @@ export async function logActivity(entry: {
   ip?: string | null
   user_agent?: string | null
 }) {
+  if (isMockMode) return mock.mockLogActivity(entry)
   const { error } = await supabase.from('activity_logs').insert(entry)
   if (error) throw error
 }

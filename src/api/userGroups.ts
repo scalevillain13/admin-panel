@@ -1,7 +1,10 @@
 import { supabase } from '../lib/supabase'
+import { isMockMode } from '../lib/mockMode'
+import * as mock from '../mock/api'
 import type { User } from '../types'
 
 export async function fetchUserGroups(userId: string) {
+  if (isMockMode) return mock.mockFetchUserGroups(userId)
   const { data, error } = await supabase
     .from('user_groups')
     .select('group_id, groups(id, name, description)')
@@ -16,6 +19,7 @@ export async function fetchUserGroups(userId: string) {
 }
 
 export async function setUserGroups(userId: string, groupIds: string[]) {
+  if (isMockMode) return mock.mockSetUserGroups(userId, groupIds)
   await supabase.from('user_groups').delete().eq('user_id', userId)
   if (groupIds.length) {
     const { error } = await supabase
@@ -26,6 +30,7 @@ export async function setUserGroups(userId: string, groupIds: string[]) {
 }
 
 export async function fetchUsersForPicker(search?: string): Promise<Pick<User, 'id' | 'email' | 'full_name'>[]> {
+  if (isMockMode) return mock.mockFetchUsersForPicker(search)
   let q = supabase.from('profiles').select('id, email, full_name').eq('status', 'active').order('email')
   if (search) {
     q = q.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`)
