@@ -1,4 +1,4 @@
-import type { ActivityLog, Group, Permission, Role, User, UserStatus } from '../types'
+import type { ActivityLog, Group, Role, User, UserStatus } from '../types'
 import { getDb, updateDb } from './db'
 import type { MockProfile } from './seed'
 

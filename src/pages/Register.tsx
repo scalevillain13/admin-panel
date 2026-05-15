@@ -37,9 +37,11 @@ export default function Register() {
           payload: { email, self_register: true },
         })
       }
+      const needsEmailConfirm =
+        data.user && Array.isArray(data.identities) && data.identities.length === 0
       toast.success(
         'Регистрация успешна. Можете войти.' +
-          (data.user?.identities?.length === 0 ? ' (Если включено подтверждение email — проверьте почту.)' : '')
+          (needsEmailConfirm ? ' (Если включено подтверждение email — проверьте почту.)' : '')
       )
       navigate('/login', { replace: true })
     } finally {

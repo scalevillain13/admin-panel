@@ -1,30 +1,40 @@
-import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { isMockMode } from './mockMode'
 import * as mockAuth from '../mock/auth'
+import type { AuthSession, AuthUser, SignUpResult } from '../types/auth'
 
-export type AuthUser = Pick<SupabaseUser, 'id' | 'email' | 'user_metadata'>
-
-type AuthError = { message: string }
+export type { AuthUser, AuthSession, SignUpResult } from '../types/auth'
 
 export async function getSession() {
   if (isMockMode) return mockAuth.getSession()
-  return supabase.auth.getSession()
+  const result = await supabase.auth.getSession()
+  return {
+    data: {
+      session: result.data.session
+        ? ({ user: result.data.session.user as AuthUser } satisfies AuthSession)
+        : null,
+    },
+    error: result.error,
+  }
 }
 
 export async function getUser() {
   if (isMockMode) return mockAuth.getUser()
-  return supabase.auth.getUser()
+  const result = await supabase.auth.getUser()
+  return {
+    data: { user: (result.data.user as AuthUser | null) ?? null },
+    error: result.error,
+  }
 }
 
 export function onAuthStateChange(
-  callback: (event: string, session: { user: AuthUser } | null) => void
+  callback: (event: string, session: AuthSession | null) => void
 ) {
   if (isMockMode) {
     return mockAuth.onAuthStateChange(callback)
   }
   return supabase.auth.onAuthStateChange((_event, session) => {
-    callback(_event, session as { user: AuthUser } | null)
+    callback(_event, session ? { user: session.user as AuthUser } : null)
   })
 }
 
@@ -39,7 +49,14 @@ export async function signUp(params: {
   options?: { data?: { full_name?: string } }
 }) {
   if (isMockMode) return mockAuth.signUp(params)
-  return supabase.auth.signUp(params)
+  const result = await supabase.auth.signUp(params)
+  return {
+    data: {
+      user: (result.data.user as AuthUser | null) ?? null,
+      identities: result.data.user?.identities,
+    } satisfies SignUpResult,
+    error: result.error,
+  }
 }
 
 export async function signOut() {

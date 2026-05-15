@@ -1,21 +1,15 @@
-import { TEST_LOGIN } from '../config/testCredentials'
+import type { AuthSession, AuthUser, SignUpResult } from '../types/auth'
 import { getDb, updateDb } from './db'
 import type { MockProfile } from './seed'
 
 const SESSION_KEY = 'admin-panel-mock-session'
 const AUTH_EVENT = 'admin-panel-auth-change'
 
-export type MockAuthUser = {
-  id: string
-  email: string
-  user_metadata?: { full_name?: string }
-}
-
-function toAuthUser(profile: Pick<MockProfile, 'id' | 'email' | 'full_name'>): MockAuthUser {
+function toAuthUser(profile: Pick<MockProfile, 'id' | 'email' | 'full_name'>): AuthUser {
   return {
     id: profile.id,
     email: profile.email,
-    user_metadata: { full_name: profile.full_name ?? undefined },
+    user_metadata: profile.full_name ? { full_name: profile.full_name } : {},
   }
 }
 
@@ -23,11 +17,11 @@ function notifyAuthChange() {
   window.dispatchEvent(new Event(AUTH_EVENT))
 }
 
-function readSessionUser(): MockAuthUser | null {
+function readSessionUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as MockAuthUser
+    return JSON.parse(raw) as AuthUser
   } catch {
     return null
   }
@@ -35,7 +29,7 @@ function readSessionUser(): MockAuthUser | null {
 
 export function getSession() {
   const user = readSessionUser()
-  return { data: { session: user ? { user } : null }, error: null }
+  return { data: { session: user ? ({ user } satisfies AuthSession) : null }, error: null }
 }
 
 export function getUser() {
@@ -43,7 +37,7 @@ export function getUser() {
   return Promise.resolve({ data: { user }, error: null })
 }
 
-export function onAuthStateChange(callback: (event: string, session: { user: MockAuthUser } | null) => void) {
+export function onAuthStateChange(callback: (event: string, session: AuthSession | null) => void) {
   const handler = () => {
     const user = readSessionUser()
     callback('SIGNED_IN', user ? { user } : null)
@@ -84,7 +78,7 @@ export function signUp({
   const db = getDb()
   if (db.profiles.some((p) => p.email.toLowerCase() === email.toLowerCase())) {
     return Promise.resolve({
-      data: { user: null },
+      data: { user: null } satisfies SignUpResult,
       error: { message: 'Пользователь с таким email уже существует' },
     })
   }
@@ -106,15 +100,14 @@ export function signUp({
     db.profiles.push(profile)
   })
   const user = toAuthUser(profile)
-  return Promise.resolve({ data: { user, identities: [{}] }, error: null })
+  return Promise.resolve({
+    data: { user, identities: [{}] } satisfies SignUpResult,
+    error: null,
+  })
 }
 
 export function signOut() {
   localStorage.removeItem(SESSION_KEY)
   notifyAuthChange()
   return Promise.resolve({ error: null })
-}
-
-export function validateTestCredentials(email: string, password: string) {
-  return email === TEST_LOGIN.email && password === TEST_LOGIN.password
 }
